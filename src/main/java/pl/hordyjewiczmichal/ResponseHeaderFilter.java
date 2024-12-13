@@ -5,70 +5,83 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
-@SuppressWarnings("WeakerAccess")
-public class ResponseHeaderFilter implements Filter
-{
-    private Map<String, List<String>> headers;
-
+public class ResponseHeaderFilter implements Filter {
+    private Map<String, List<String>> headersToSet = new HashMap<>();
+    private boolean setHeadersAfterServlet = false;
+    private boolean appendValues = false;
 
     @Override
-    public void init(FilterConfig config)
-    {
-        this.headers = new HashMap<>();
-
+    public void init(FilterConfig config) {
         Enumeration<String> paramNames = config.getInitParameterNames();
-
         if (paramNames == null) return;
 
-        while (paramNames.hasMoreElements())
-        {
-            String headerName = paramNames.nextElement();
-            String headerValues = config.getInitParameter(headerName); // can contain multi-values (separated by new line)
+        this.setHeadersAfterServlet = Boolean.parseBoolean(config.getInitParameter("setHeadersAfterServlet"));
+        this.appendValues = Boolean.parseBoolean(config.getInitParameter("appendValues"));
 
-            List<String> values = new ArrayList<>();
-
-            try
-            {
-                if ("".equals(headerValues)) throw new IllegalArgumentException();
-
-                StringTokenizer st = new StringTokenizer(headerValues, "\r\n");
-                while (st.hasMoreTokens())
-                {
-                    String nextValue = st.nextToken().trim();
-                    if("".equals(nextValue)) continue;
-                    values.add(nextValue);
-                }
+        while (paramNames.hasMoreElements()) {
+            String paramName = paramNames.nextElement();
+            if ("setHeadersAfterServlet".equals(paramName) || "appendValues".equals(paramName)) {
+                continue; // skip these metadata parameters
             }
-            catch (NullPointerException | IllegalArgumentException e)
-            {
-                continue; // skip if no value specified
+            String paramValue = config.getInitParameter(paramName);
+            if (paramValue != null && !paramValue.trim().isEmpty()) {
+                headersToSet.put(paramName, Arrays.asList(paramValue.split("\n")));
             }
-
-            this.headers.put(headerName, values);
         }
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException
-    {
-        HttpServletResponse response = (HttpServletResponse) resp;
-        Set<String> headerNames = this.getHeaders().keySet();
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
+        // use a wrapper to buffer the response content; otherwise the response will be committed when chain.doFilter
+        //  is called
+        BufferedHttpServletResponseWrapper response = new BufferedHttpServletResponseWrapper((HttpServletResponse) resp);
 
-        headerNames.forEach(headerName ->
-                this.getHeaders().get(headerName).forEach(val ->
-                        response.addHeader(headerName, val)));
+        if (!setHeadersAfterServlet) {
+            setHeadersToSet(response);
+        }
 
-        chain.doFilter(req, resp);
+        chain.doFilter(req, response);
+
+        if (setHeadersAfterServlet) {
+            setHeadersToSet(response);
+        }
+
+        // commit the response
+        response.flushBuffer();
+    }
+
+    private void setHeader(HttpServletResponse response, String name, String value, boolean append) {
+        if (append && response.containsHeader(name)) {
+            String existingValue = response.getHeader(name);
+            String newValue = String.join(", ", existingValue, value);
+            response.setHeader(name, newValue);
+        } else {
+            response.addHeader(name, value);
+        }
+    }
+
+    private void setHeadersToSet(HttpServletResponse response) {
+        headersToSet.forEach((headerName, values) -> {
+            values.forEach(value -> setHeader(response, headerName, value, appendValues));
+        });
     }
 
     @Override
-    public void destroy()
-    {
+    public void destroy() {
         // nothing to clean up.
     }
 
-    public Map<String, List<String>> getHeaders()
-    {
+    public Map<String, List<String>> getHeadersToSet() {
+        return headersToSet;
+    }
+
+    // helper for step debugging
+    public Map<String, String> getResponseHeaders(HttpServletResponse response) {
+        Map<String, String> headers = new HashMap<>();
+        Collection<String> headerNames = response.getHeaderNames();
+        for (String headerName : headerNames) {
+            headers.put(headerName, response.getHeader(headerName));
+        }
         return headers;
     }
 }

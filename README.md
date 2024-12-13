@@ -11,6 +11,24 @@ Add custom headers easily to your Tomcat response using param-name and param-val
         <filter-name>ResponseHeaderFilter</filter-name>
         <filter-class>pl.hordyjewiczmichal.ResponseHeaderFilter</filter-class>
         <init-param>
+             <!-- optional parameter -->
+            <param-name>appendValues</param-name>
+            <!--
+              false: (default) filter sets a new header for every header value
+              true: filter appends values to the header in a comma-delimited list
+            -->
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+             <!-- optional parameter -->
+            <param-name>setHeadersAfterServlet</param-name>
+            <!--
+              false: (default) filter sets headers *before* servlet execution
+              true: filter sets headers *after* servlet execution
+            -->
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
             <param-name>Your-Header-1</param-name> <!-- put your any header name -->
             <param-value>
                 your value1
@@ -30,3 +48,7 @@ Add custom headers easily to your Tomcat response using param-name and param-val
     ```
 In `<init-param>` use `<param-name>` tag to add your custom header and below use `<param-value>` to add value to your header.
 You can use multiple values for your header in `<param-value>` - just separate them by a new line.
+
+The `appendValues` parameter controls whether the filter appends values to a header in a comma-delimited list or sets a new header for every header value (default).
+
+The `setHeadersAfterServlet` parameter controls whether headers are set before or after the Java application processes the request.
