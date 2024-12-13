@@ -5,70 +5,56 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
-@SuppressWarnings("WeakerAccess")
-public class ResponseHeaderFilter implements Filter
-{
-    private Map<String, List<String>> headers;
-
+public class ResponseHeaderFilter implements Filter {
+    private Map<String, List<String>> headersToSet = new HashMap<>();
+    private boolean setHeadersAfterServlet;
 
     @Override
-    public void init(FilterConfig config)
-    {
-        this.headers = new HashMap<>();
+    public void init(FilterConfig config) {
+        this.setHeadersAfterServlet = Boolean.parseBoolean(config.getInitParameter("setHeadersAfterServlet"));
 
         Enumeration<String> paramNames = config.getInitParameterNames();
-
         if (paramNames == null) return;
 
-        while (paramNames.hasMoreElements())
-        {
-            String headerName = paramNames.nextElement();
-            String headerValues = config.getInitParameter(headerName); // can contain multi-values (separated by new line)
-
-            List<String> values = new ArrayList<>();
-
-            try
-            {
-                if ("".equals(headerValues)) throw new IllegalArgumentException();
-
-                StringTokenizer st = new StringTokenizer(headerValues, "\r\n");
-                while (st.hasMoreTokens())
-                {
-                    String nextValue = st.nextToken().trim();
-                    if("".equals(nextValue)) continue;
-                    values.add(nextValue);
-                }
+        while (paramNames.hasMoreElements()) {
+            String paramName = paramNames.nextElement();
+            if ("setHeadersAfterServlet".equals(paramName)) {
+                continue; // Skip the setHeadersAfterServlet parameter
             }
-            catch (NullPointerException | IllegalArgumentException e)
-            {
-                continue; // skip if no value specified
+            String paramValue = config.getInitParameter(paramName);
+            if (paramValue != null && !paramValue.trim().isEmpty()) {
+                headersToSet.put(paramName, Arrays.asList(paramValue.split("\n")));
             }
-
-            this.headers.put(headerName, values);
         }
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException
-    {
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         HttpServletResponse response = (HttpServletResponse) resp;
-        Set<String> headerNames = this.getHeaders().keySet();
 
-        headerNames.forEach(headerName ->
-                this.getHeaders().get(headerName).forEach(val ->
-                        response.addHeader(headerName, val)));
+        if (!setHeadersAfterServlet) {
+            setHeadersToSet(response);
+        }
 
         chain.doFilter(req, resp);
+
+        if (setHeadersAfterServlet) {
+            setHeadersToSet(response);
+        }
+    }
+
+    private void setHeadersToSet(HttpServletResponse response) {
+        headersToSet.forEach((headerName, values) -> {
+            values.forEach(value -> response.addHeader(headerName, value));
+        });
     }
 
     @Override
-    public void destroy()
-    {
+    public void destroy() {
         // nothing to clean up.
     }
 
-    public Map<String, List<String>> getHeaders()
-    {
-        return headers;
+    public Map<String, List<String>> getHeadersToSet() {
+        return headersToSet;
     }
 }
