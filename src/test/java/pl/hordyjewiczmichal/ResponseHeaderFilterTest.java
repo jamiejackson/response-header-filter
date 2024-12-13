@@ -97,7 +97,7 @@ public class ResponseHeaderFilterTest {
         Map<String, List<String>> expectedInitParamValues = new HashMap<>();
         expectedInitParamValues.put("x-header-to-append-or-replace", Arrays.asList("set-by-filter"));
         Map<String, String> initParams = Map.of(
-        "x-header-to-append-or-replace", "set-by-filter"
+            "x-header-to-append-or-replace", "set-by-filter"
         );
         initParams.forEach((key, value) -> mockInitParameter(config, key, value));
         Mockito.when(config.getInitParameterNames()).thenReturn(Collections.enumeration(initParams.keySet()));
@@ -120,33 +120,34 @@ public class ResponseHeaderFilterTest {
         assertHeaderValues(response, "x-header-to-append-or-replace", "set-by-servlet");
     }
 
-@Test
-public void doFilterTest_filterAddsHeadersAfterServlet() throws ServletException, IOException {
-    // init
-    Map<String, List<String>> expectedInitParamValues = new HashMap<>();
-    expectedInitParamValues.put("x-header-to-append-or-replace", Arrays.asList("set-by-filter"));
-    Map<String, String> initParams = Map.of(
-        "setHeadersAfterServlet", "true",
-        "x-header-to-append-or-replace", "set-by-filter"
-    );
-    initParams.forEach((key, value) -> mockInitParameter(config, key, value));
-    Mockito.when(config.getInitParameterNames()).thenReturn(Collections.enumeration(initParams.keySet()));
+    @Test
+    public void doFilterTest_filterAddsHeadersAfterServlet() throws ServletException, IOException {
+        // init
+        Map<String, List<String>> expectedInitParamValues = new HashMap<>();
+        expectedInitParamValues.put("x-header-to-append-or-replace", Arrays.asList("set-by-filter"));
+        Map<String, String> initParams = Map.of(
+            "setHeadersAfterServlet", "true",
+            "x-header-to-append-or-replace", "set-by-filter"
+        );
+        initParams.forEach((key, value) -> mockInitParameter(config, key, value));
+        Mockito.when(config.getInitParameterNames()).thenReturn(Collections.enumeration(initParams.keySet()));
 
-    filter.init(config);
 
-    // given
-    MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.init(config);
 
-    // when
-    filter.doFilter(req, response, (req, resp) -> {
-        // Simulate servlet behavior
-        ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
-    });
+        // given
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
-    // then
-    // the filter added a value to the header which had been set by the servlet
-    assertHeaderValues(response, "x-header-to-append-or-replace", "set-by-servlet, set-by-filter");
-}
+        // when
+        filter.doFilter(req, response, (req, resp) -> {
+            // Simulate servlet behavior
+            ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
+        });
+
+        // then
+        // the filter added a value to the header which had been set by the servlet
+        assertHeaderValues(response, "x-header-to-append-or-replace", "set-by-servlet, set-by-filter");
+    }
 
     @Test
     public void destroyTest() {
