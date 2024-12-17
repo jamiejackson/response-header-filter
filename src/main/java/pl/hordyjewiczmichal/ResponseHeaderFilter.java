@@ -33,12 +33,14 @@ public class ResponseHeaderFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
 
         if (!setHeadersAfterServlet) {
+            response.addHeader("x-response-filter-header-set-before_servlet", "true");
             setHeadersToSet(response);
         }
 
         chain.doFilter(req, resp);
 
         if (setHeadersAfterServlet) {
+            response.addHeader("x-response-filter-header-set-after_servlet", "true");
             setHeadersToSet(response);
         }
     }
