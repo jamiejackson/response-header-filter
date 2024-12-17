@@ -35,6 +35,7 @@ public class ResponseHeaderFilter implements Filter {
 
         response.addHeader("x-response-filter-header-in-doFilter", "true");
         response.addHeader("instance_var_setHeadersAfterServlet", String.valueOf(setHeadersAfterServlet));
+        response.addHeader("instance_var_setHeadersAfterServlet_is_true", String.valueOf(setHeadersAfterServlet==true));
 
 
         if (!setHeadersAfterServlet) {
