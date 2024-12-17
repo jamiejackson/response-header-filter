@@ -39,15 +39,15 @@ public class ResponseHeaderFilter implements Filter {
 
 
         if (!setHeadersAfterServlet) {
-            response.addHeader("x-response-filter-header-set-before-servlet", "true");
             setHeadersToSet(response);
+            response.addHeader("x-response-filter-header-set-before-servlet", "true");
         }
 
         chain.doFilter(req, resp);
 
         if (setHeadersAfterServlet) {
-            response.addHeader("x-response-filter-header-set-after-servlet", "true");
             setHeadersToSet(response);
+            response.addHeader("x-response-filter-header-set-after-servlet", "true");
         }
     }
 
