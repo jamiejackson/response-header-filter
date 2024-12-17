@@ -7,19 +7,21 @@ import java.util.*;
 
 public class ResponseHeaderFilter implements Filter {
     private Map<String, List<String>> headersToSet = new HashMap<>();
-    private boolean setHeadersAfterServlet;
+    private boolean setHeadersAfterServlet = false;
+    private boolean appendValues = false;
 
     @Override
     public void init(FilterConfig config) {
-        this.setHeadersAfterServlet = Boolean.parseBoolean(config.getInitParameter("setHeadersAfterServlet"));
-
         Enumeration<String> paramNames = config.getInitParameterNames();
         if (paramNames == null) return;
 
+        this.setHeadersAfterServlet = Boolean.parseBoolean(config.getInitParameter("setHeadersAfterServlet"));
+        this.appendValues = Boolean.parseBoolean(config.getInitParameter("appendValues"));
+
         while (paramNames.hasMoreElements()) {
             String paramName = paramNames.nextElement();
-            if ("setHeadersAfterServlet".equals(paramName)) {
-                continue; // Skip the setHeadersAfterServlet parameter
+            if ("setHeadersAfterServlet".equals(paramName) || "appendValues".equals(paramName)) {
+                continue; // skip these metadata parameters
             }
             String paramValue = config.getInitParameter(paramName);
             if (paramValue != null && !paramValue.trim().isEmpty()) {
@@ -45,7 +47,13 @@ public class ResponseHeaderFilter implements Filter {
 
     private void setHeadersToSet(HttpServletResponse response) {
         headersToSet.forEach((headerName, values) -> {
-            values.forEach(value -> response.addHeader(headerName, value));
+            if (appendValues && response.containsHeader(headerName)) {
+                String existingValue = response.getHeader(headerName);
+                String newValue = String.join(", ", existingValue, String.join(", ", values));
+                response.setHeader(headerName, newValue);
+            } else {
+                values.forEach(value -> response.addHeader(headerName, value));
+            }
         });
     }
 

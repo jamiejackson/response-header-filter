@@ -41,6 +41,15 @@ public class ResponseHeaderFilterTest {
         assertEquals(expectedValues, response.getHeaderValues(headerName).stream().map(Object::toString).collect(Collectors.joining(", ")));
     }
 
+    private void assertSingleHeaderValue(MockHttpServletResponse response, String headerName, String expectedValue) {
+        List<Object> headerValues = response.getHeaderValues(headerName);
+        List<String> stringHeaderValues = headerValues.stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+        assertEquals("Expected only one header value", 1, stringHeaderValues.size());
+        assertEquals("Header value does not match", expectedValue, stringHeaderValues.get(0));
+    }
+
     private void mockInitParameter(FilterConfig config, String parameterName, String returnValue) {
         Mockito.when(config.getInitParameter(parameterName)).thenReturn(returnValue);
     }
@@ -132,7 +141,6 @@ public class ResponseHeaderFilterTest {
         initParams.forEach((key, value) -> mockInitParameter(config, key, value));
         Mockito.when(config.getInitParameterNames()).thenReturn(Collections.enumeration(initParams.keySet()));
 
-
         filter.init(config);
 
         // given
@@ -147,6 +155,35 @@ public class ResponseHeaderFilterTest {
         // then
         // the filter added a value to the header which had been set by the servlet
         assertHeaderValues(response, "x-header-to-append-or-replace", "set-by-servlet, set-by-filter");
+    }
+
+    @Test
+    public void doFilterTest_filterAppendsHeaderValuesAfterServlet() throws ServletException, IOException {
+        // init
+        Map<String, List<String>> expectedInitParamValues = new HashMap<>();
+        expectedInitParamValues.put("x-header-to-append-or-replace", Arrays.asList("set-by-filter"));
+        Map<String, String> initParams = Map.of(
+                "setHeadersAfterServlet", "true",
+                "appendValues", "true",
+                "x-header-to-append-or-replace", "set-by-filter"
+        );
+        initParams.forEach((key, value) -> mockInitParameter(config, key, value));
+        Mockito.when(config.getInitParameterNames()).thenReturn(Collections.enumeration(initParams.keySet()));
+
+        filter.init(config);
+
+        // given
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        // when
+        filter.doFilter(req, response, (req, resp) -> {
+            // Simulate servlet behavior
+            ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
+        });
+
+        // then
+        // the filter appended a value to the header which had been set by the servlet
+        assertSingleHeaderValue(response, "x-header-to-append-or-replace", "set-by-servlet, set-by-filter");
     }
 
     @Test
