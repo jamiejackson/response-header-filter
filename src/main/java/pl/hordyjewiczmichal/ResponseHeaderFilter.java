@@ -37,24 +37,31 @@ public class ResponseHeaderFilter implements Filter {
         response.addHeader("instance_var_setHeadersAfterServlet", String.valueOf(setHeadersAfterServlet));
         response.addHeader("instance_var_setHeadersAfterServlet_is_true", String.valueOf(setHeadersAfterServlet==true));
 
-
         if (!setHeadersAfterServlet) {
+            response.addHeader("debug","setHeadersAfterServlet is false");
             setHeadersToSet(response);
+            response.addHeader("debug","setHeadersToSet called");
             response.addHeader("x-response-filter-header-set-before-servlet", "true");
+            response.addHeader("debug", "x-response-thing-called");
         }
 
         chain.doFilter(req, resp);
 
         if (setHeadersAfterServlet) {
+            response.addHeader("debug","setHeadersAfterServlet is true");
             setHeadersToSet(response);
+            response.addHeader("debug","setHeadersToSet called");
             response.addHeader("x-response-filter-header-set-after-servlet", "true");
+            response.addHeader("debug", "x-response-thing-called");
         }
     }
 
     private void setHeadersToSet(HttpServletResponse response) {
         StringBuilder headersValue = new StringBuilder();
+        response.addHeader("debug","in setHeadersToSet");
         headersToSet.forEach((headerName, values) -> {
             values.forEach(value -> {
+                response.addHeader("debug","in inner loop");
                 response.addHeader(headerName, value);
                 headersValue.append(headerName).append("=").append(value).append(", ");
             });
@@ -62,7 +69,9 @@ public class ResponseHeaderFilter implements Filter {
         if (headersValue.length() > 0) {
             headersValue.setLength(headersValue.length() - 2); // Remove the trailing comma and space
         }
+        response.addHeader("debug","setting x-filter-headers");
         response.setHeader("x-filter-headers", headersValue.toString());
+        response.addHeader("debug","set x-filter-headers");
     }
 
     @Override
