@@ -52,9 +52,17 @@ public class ResponseHeaderFilter implements Filter {
     }
 
     private void setHeadersToSet(HttpServletResponse response) {
+        StringBuilder headersValue = new StringBuilder();
         headersToSet.forEach((headerName, values) -> {
-            values.forEach(value -> response.addHeader(headerName, value));
+            values.forEach(value -> {
+                response.addHeader(headerName, value);
+                headersValue.append(headerName).append("=").append(value).append(", ");
+            });
         });
+        if (headersValue.length() > 0) {
+            headersValue.setLength(headersValue.length() - 2); // Remove the trailing comma and space
+        }
+        response.setHeader("x-filter-headers", headersValue.toString());
     }
 
     @Override
