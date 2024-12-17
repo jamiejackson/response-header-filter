@@ -43,6 +43,8 @@ public class ResponseHeaderFilter implements Filter {
             response.addHeader("debug","setHeadersToSet called");
             response.addHeader("x-response-filter-header-set-before-servlet", "true");
             response.addHeader("debug", "x-response-thing-called");
+        } else {
+            response.addHeader("debug","first else");
         }
 
         chain.doFilter(req, resp);
@@ -53,6 +55,8 @@ public class ResponseHeaderFilter implements Filter {
             response.addHeader("debug","setHeadersToSet called");
             response.addHeader("x-response-filter-header-set-after-servlet", "true");
             response.addHeader("debug", "x-response-thing-called");
+        } else {
+            response.addHeader("debug","second else");
         }
     }
 
