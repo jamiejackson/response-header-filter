@@ -34,17 +34,18 @@ public class ResponseHeaderFilter implements Filter {
 
 
         response.addHeader("x-response-filter-header-in-doFilter", "true");
+        response.addHeader("instance_var_setHeadersAfterServlet", String.valueOf(setHeadersAfterServlet));
 
 
         if (!setHeadersAfterServlet) {
-            response.addHeader("x-response-filter-header-set-before_servlet", "true");
+            response.addHeader("x-response-filter-header-set-before-servlet", "true");
             setHeadersToSet(response);
         }
 
         chain.doFilter(req, resp);
 
         if (setHeadersAfterServlet) {
-            response.addHeader("x-response-filter-header-set-after_servlet", "true");
+            response.addHeader("x-response-filter-header-set-after-servlet", "true");
             setHeadersToSet(response);
         }
     }
