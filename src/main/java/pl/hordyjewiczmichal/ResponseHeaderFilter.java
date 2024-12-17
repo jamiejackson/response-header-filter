@@ -32,6 +32,10 @@ public class ResponseHeaderFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         HttpServletResponse response = (HttpServletResponse) resp;
 
+
+        response.addHeader("x-response-filter-header-in-doFilter", "true");
+
+
         if (!setHeadersAfterServlet) {
             response.addHeader("x-response-filter-header-set-before_servlet", "true");
             setHeadersToSet(response);
