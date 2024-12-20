@@ -55,6 +55,7 @@ public class ResponseHeaderFilter implements Filter {
         logger.log(Level.FINE, "doFilter called");
         logResponseHeaders(response, "Headers after servlet was called:");
 
+        response.setHeader("baz", "qux");
         if (setHeadersAfterServlet) {
             logger.log(Level.FINE, "setHeadersAfterServlet=true");
             logResponseHeaders(response, "Headers before filter sets headers:");
