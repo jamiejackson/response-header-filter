@@ -36,15 +36,12 @@ public class ResponseHeaderFilter implements Filter {
         //  is called
         BufferedHttpServletResponseWrapper response = new BufferedHttpServletResponseWrapper((HttpServletResponse) resp);
 
-        response.setHeader("foo", "bar");
-
         if (!setHeadersAfterServlet) {
             setHeadersToSet(response);
         }
 
         chain.doFilter(req, response);
 
-        response.setHeader("baz", "qux");
         if (setHeadersAfterServlet) {
             setHeadersToSet(response);
         }
