@@ -115,9 +115,6 @@ public class ResponseHeaderFilterTest {
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        // Application sets header before filter
-        response.setHeader("x-header-to-append-or-replace", "set-by-servlet");
-
         // when
         filter.doFilter(req, response, (req, resp) -> {
             // Simulate servlet behavior
