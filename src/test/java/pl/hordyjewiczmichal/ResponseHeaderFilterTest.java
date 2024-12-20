@@ -118,7 +118,7 @@ public class ResponseHeaderFilterTest {
         // when
         filter.doFilter(req, response, (req, resp) -> {
             // Simulate servlet behavior
-            ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
+            ((BufferedHttpServletResponseWrapper) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
         });
 
         // then
@@ -146,7 +146,7 @@ public class ResponseHeaderFilterTest {
         // when
         filter.doFilter(req, response, (req, resp) -> {
             // Simulate servlet behavior
-            ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
+            ((BufferedHttpServletResponseWrapper) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
         });
 
         // then
@@ -175,7 +175,7 @@ public class ResponseHeaderFilterTest {
         // when
         filter.doFilter(req, response, (req, resp) -> {
             // Simulate servlet behavior
-            ((MockHttpServletResponse) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
+            ((BufferedHttpServletResponseWrapper) resp).setHeader("x-header-to-append-or-replace", "set-by-servlet");
         });
 
         // then

@@ -2,6 +2,7 @@ package pl.hordyjewiczmichal;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
+import pl.hordyjewiczmichal.BufferedHttpServletResponseWrapper;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -38,8 +39,9 @@ public class ResponseHeaderFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
-        HttpServletResponse response = (HttpServletResponse) resp;
-
+        // use a wrapper to buffer the response content; otherwise the response will be committed when chain.doFilter
+        //  is called
+        BufferedHttpServletResponseWrapper response = new BufferedHttpServletResponseWrapper((HttpServletResponse) resp);
 
         response.setHeader("foo", "bar");
 
@@ -51,7 +53,7 @@ public class ResponseHeaderFilter implements Filter {
         }
 
         logResponseHeaders(response, "Headers before servlet is called:");
-        chain.doFilter(req, resp);
+        chain.doFilter(req, response); // Pass the wrapped response
         logger.log(Level.FINE, "doFilter called");
         logResponseHeaders(response, "Headers after servlet was called:");
 
@@ -62,6 +64,9 @@ public class ResponseHeaderFilter implements Filter {
             setHeadersToSet(response);
             logResponseHeaders(response, "Headers after filter set headers:");
         }
+
+        // commit the response
+        response.flushBuffer();
     }
 
     private void setHeader(HttpServletResponse response, String name, String value, boolean append) {
