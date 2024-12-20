@@ -40,6 +40,9 @@ public class ResponseHeaderFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         HttpServletResponse response = (HttpServletResponse) resp;
 
+
+        response.setHeader("foo", "bar");
+
         if (!setHeadersAfterServlet) {
             logger.log(Level.FINE, "setHeadersAfterServlet=false");
             logResponseHeaders(response, "Headers before filter sets headers:");
