@@ -97,4 +97,14 @@ public class ResponseHeaderFilter implements Filter {
             logger.log(Level.FINE, "Header: " + headerName + " = " + headerValue);
         }
     }
+
+    // helper for step debugging
+    public Map<String, String> getResponseHeaders(HttpServletResponse response) {
+        Map<String, String> headers = new HashMap<>();
+        Collection<String> headerNames = response.getHeaderNames();
+        for (String headerName : headerNames) {
+            headers.put(headerName, response.getHeader(headerName));
+        }
+        return headers;
+    }
 }
