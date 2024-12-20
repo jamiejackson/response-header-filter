@@ -107,4 +107,8 @@ public class ResponseHeaderFilter implements Filter {
         }
         return headers;
     }
+
+    public int getResponseIdentityHashCode(HttpServletResponse response) {
+        return System.identityHashCode(response);
+    }
 }
